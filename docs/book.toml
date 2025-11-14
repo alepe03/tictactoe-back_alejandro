@@ -1,0 +1,26 @@
+[book]
+title = "Despliegue de Aplicaciones - TicTacToe API"
+description = "Memoria técnica del despliegue y configuración de un servidor de aplicaciones"
+authors = ["Alejandro"]
+language = "es"
+
+[build]
+build-dir = "book"
+
+[output.html]
+default-theme = "navy"
+git-repository-url = ""
+edit-url-template = ""
+
+[output.html.search]
+enable = true
+limit-results = 30
+teaser-word-count = 30
+
+[output.html.playground]
+editable = true
+copyable = true
+copyable-js = true
+line-numbers = false
+runnable = true
+

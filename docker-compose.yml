@@ -1,0 +1,21 @@
+# Docker Compose para Fase 3: Configuración básica
+# Exponer la API en localhost:3000
+
+services:
+  tictactoe-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tictactoe-api
+    ports:
+      - "3000:8000"  # Puerto host:puerto contenedor
+    environment:
+      - FLASK_ENV=production
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+

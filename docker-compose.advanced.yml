@@ -1,0 +1,71 @@
+# Docker Compose para Fase 4: Configuración avanzada
+# Múltiples instancias con nginx como proxy reverso
+# Dominio local: tictactoe.local
+
+services:
+  # Instancia 1 de la API
+  tictactoe-api-1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tictactoe-api-1
+    expose:
+      - "8000"
+    environment:
+      - FLASK_ENV=production
+      - INSTANCE_ID=1
+    restart: unless-stopped
+    networks:
+      - tictactoe-network
+
+  # Instancia 2 de la API
+  tictactoe-api-2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tictactoe-api-2
+    expose:
+      - "8000"
+    environment:
+      - FLASK_ENV=production
+      - INSTANCE_ID=2
+    restart: unless-stopped
+    networks:
+      - tictactoe-network
+
+  # Instancia 3 de la API (opcional, para más carga)
+  tictactoe-api-3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tictactoe-api-3
+    expose:
+      - "8000"
+    environment:
+      - FLASK_ENV=production
+      - INSTANCE_ID=3
+    restart: unless-stopped
+    networks:
+      - tictactoe-network
+
+  # Nginx como proxy reverso con sticky sessions
+  nginx:
+    image: nginx:alpine
+    container_name: tictactoe-nginx
+    ports:
+      - "4000:80"  # Puerto host:puerto contenedor
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx-sticky.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - tictactoe-api-1
+      - tictactoe-api-2
+      - tictactoe-api-3
+    restart: unless-stopped
+    networks:
+      - tictactoe-network
+
+networks:
+  tictactoe-network:
+    driver: bridge
+

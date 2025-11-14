@@ -1,0 +1,431 @@
+<!DOCTYPE HTML>
+<html lang="es" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Fase 3: Configuración Básica - Despliegue de Aplicaciones - TicTacToe API</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Memoria técnica del despliegue y configuración de un servidor de aplicaciones">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Despliegue de Aplicaciones - TicTacToe API</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="fase-3-configuración-básica-del-servidor"><a class="header" href="#fase-3-configuración-básica-del-servidor">Fase 3: Configuración Básica del Servidor</a></h1>
+<h2 id="objetivo"><a class="header" href="#objetivo">Objetivo</a></h2>
+<p>Configurar el servidor para ejecutar la API TicTacToe y exponerla en <code>localhost:3000</code>, verificando el correcto funcionamiento de los endpoints.</p>
+<h2 id="configuración-con-docker-compose"><a class="header" href="#configuración-con-docker-compose">Configuración con Docker Compose</a></h2>
+<h3 id="archivo-docker-composeyml"><a class="header" href="#archivo-docker-composeyml">Archivo docker-compose.yml</a></h3>
+<p>Creamos un archivo <code>docker-compose.yml</code> para simplificar el despliegue:</p>
+<pre><code class="language-yaml">services:
+  tictactoe-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tictactoe-api
+    ports:
+      - "3000:8000"  # Puerto host:puerto contenedor
+    environment:
+      - FLASK_ENV=production
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+</code></pre>
+<p><strong>Configuración explicada:</strong></p>
+<ul>
+<li><strong>build:</strong> Construye la imagen desde el Dockerfile actual</li>
+<li><strong>container_name:</strong> Nombre del contenedor</li>
+<li><strong>ports:</strong> Mapea el puerto 3000 del host al puerto 8000 del contenedor</li>
+<li><strong>environment:</strong> Variable de entorno para modo producción</li>
+<li><strong>restart:</strong> Reinicia automáticamente el contenedor si falla</li>
+<li><strong>healthcheck:</strong> Verifica periódicamente que la API está respondiendo</li>
+</ul>
+<h2 id="proceso-de-despliegue"><a class="header" href="#proceso-de-despliegue">Proceso de Despliegue</a></h2>
+<h3 id="1-construcción-de-la-imagen"><a class="header" href="#1-construcción-de-la-imagen">1. Construcción de la Imagen</a></h3>
+<pre><code class="language-bash">docker compose build
+</code></pre>
+<p>Esto construye la imagen utilizando el Dockerfile y las dependencias especificadas.</p>
+<h3 id="2-inicio-del-servicio"><a class="header" href="#2-inicio-del-servicio">2. Inicio del Servicio</a></h3>
+<pre><code class="language-bash">docker compose up -d
+</code></pre>
+<p>El flag <code>-d</code> ejecuta el contenedor en modo detached (en segundo plano).</p>
+<p><strong>Resultado:</strong></p>
+<pre><code>[+] Running 2/2
+ ✔ Network tictactoe-back_default  Created    0.0s 
+ ✔ Container tictactoe-api         Started    0.3s
+</code></pre>
+<h3 id="3-verificación-del-estado"><a class="header" href="#3-verificación-del-estado">3. Verificación del Estado</a></h3>
+<p>Verificamos que el contenedor está corriendo:</p>
+<pre><code class="language-bash">docker compose ps
+</code></pre>
+<p><strong>Resultado:</strong></p>
+<pre><code>NAME              IMAGE                            COMMAND                  STATUS          PORTS
+tictactoe-api     tictactoe-back-tictactoe-api     "uv run gunicorn --b…"   Up (healthy)    0.0.0.0:3000-&gt;8000/tcp
+</code></pre>
+<p><img src="images/Captura%20de%20pantalla%202025-11-14%20a%20las%2011.05.10.png" alt="Contenedores corriendo con Docker Compose" /></p>
+<p>El contenedor está en estado <code>Up (healthy)</code>, indicando que:</p>
+<ul>
+<li>El contenedor está corriendo</li>
+<li>El healthcheck está pasando correctamente</li>
+<li>Gunicorn está funcionando correctamente</li>
+</ul>
+<h3 id="4-verificación-de-logs"><a class="header" href="#4-verificación-de-logs">4. Verificación de Logs</a></h3>
+<p>Revisamos los logs para confirmar que Gunicorn se inició correctamente:</p>
+<pre><code class="language-bash">docker compose logs tictactoe-api
+</code></pre>
+<p><strong>Resultado:</strong></p>
+<pre><code>tictactoe-api  | [2025-11-14 11:02:01 +0000] [10] [INFO] Starting gunicorn 23.0.0
+tictactoe-api  | [2025-11-14 11:02:01 +0000] [10] [INFO] Listening at: http://0.0.0.0:8000 (10)
+tictactoe-api  | [2025-11-14 11:02:01 +0000] [10] [INFO] Using worker: sync
+tictactoe-api  | [2025-11-14 11:02:01 +0000] [11] [INFO] Booting worker with pid: 11
+tictactoe-api  | [2025-11-14 11:02:01 +0000] [12] [INFO] Booting worker with pid: 12
+</code></pre>
+<p>Esto confirma que:</p>
+<ul>
+<li>Gunicorn 23.0.0 se inició correctamente</li>
+<li>Está escuchando en el puerto 8000 dentro del contenedor</li>
+<li>Tiene 2 workers activos (pid 11 y 12)</li>
+</ul>
+<p><img src="images/Captura%20de%20pantalla%202025-11-14%20a%20las%2011.05.10.png" alt="Logs de Gunicorn con workers iniciados" /></p>
+<h2 id="verificación-de-funcionamiento"><a class="header" href="#verificación-de-funcionamiento">Verificación de Funcionamiento</a></h2>
+<h3 id="1-acceso-a-swagger-ui"><a class="header" href="#1-acceso-a-swagger-ui">1. Acceso a Swagger UI</a></h3>
+<p>Abrimos el navegador en <code>http://localhost:3000/</code> y verificamos que Swagger UI carga correctamente.</p>
+<p><img src="images/Captura%20de%20pantalla%202025-11-14%20a%20las%2011.07.36.png" alt="Swagger UI funcionando en localhost:3000" /></p>
+<h3 id="2-prueba-de-endpoints"><a class="header" href="#2-prueba-de-endpoints">2. Prueba de Endpoints</a></h3>
+<h4 id="21-registro-de-dispositivo"><a class="header" href="#21-registro-de-dispositivo">2.1. Registro de Dispositivo</a></h4>
+<p>Ejecutamos <code>POST /devices</code> desde Swagger UI:</p>
+<ul>
+<li><strong>Request:</strong></li>
+</ul>
+<pre><code class="language-json">{
+  "alias": "Juan"
+}
+</code></pre>
+<ul>
+<li><strong>Respuesta:</strong></li>
+</ul>
+<pre><code class="language-json">{
+  "device_id": "47dabe4c-8473-4f67-85d1-9f262a3d2433"
+}
+</code></pre>
+<ul>
+<li><strong>Código:</strong> <code>201 Created</code></li>
+<li><strong>Server:</strong> <code>gunicorn</code> (confirmando que está usando Gunicorn, no Flask dev server)</li>
+</ul>
+<p><img src="images/Captura%20de%20pantalla%202025-11-14%20a%20las%2011.07.36.png" alt="POST /devices ejecutado mostrando server: gunicorn" /></p>
+<h4 id="22-listado-de-dispositivos"><a class="header" href="#22-listado-de-dispositivos">2.2. Listado de Dispositivos</a></h4>
+<p>Ejecutamos <code>GET /devices</code>:</p>
+<ul>
+<li><strong>Respuesta:</strong></li>
+</ul>
+<pre><code class="language-json">{
+  "connected_devices": [
+    "47dabe4c-8473-4f67-85d1-9f262a3d2433",
+    "8cd4b2e2-6c21-4493-877d-97f283884ff8"
+  ]
+}
+</code></pre>
+<ul>
+<li><strong>Código:</strong> <code>200 OK</code></li>
+<li><strong>Server:</strong> <code>gunicorn</code></li>
+</ul>
+<p><img src="images/Captura%20de%20pantalla%202025-11-14%20a%20las%2011.10.00.png" alt="GET /devices ejecutado mostrando server: gunicorn" /></p>
+<h3 id="3-pruebas-con-curl"><a class="header" href="#3-pruebas-con-curl">3. Pruebas con curl</a></h3>
+<p>También realizamos pruebas con curl desde la terminal:</p>
+<pre><code class="language-bash">curl http://localhost:3000/
+</code></pre>
+<p><strong>Resultado:</strong> Respuesta HTML de Swagger UI correcta.</p>
+<pre><code class="language-bash">curl -X POST http://localhost:3000/devices \
+  -H "Content-Type: application/json" \
+  -d '{"alias": "TestDevice"}'
+</code></pre>
+<p><strong>Resultado:</strong> <code>{"device_id": "..."}</code> con código <code>201 Created</code>.</p>
+<h2 id="comparación-desarrollo-vs-producción"><a class="header" href="#comparación-desarrollo-vs-producción">Comparación: Desarrollo vs Producción</a></h2>
+<h3 id="modo-desarrollo-fase-1"><a class="header" href="#modo-desarrollo-fase-1">Modo Desarrollo (Fase 1)</a></h3>
+<ul>
+<li><strong>Servidor:</strong> Flask desarrollo server (Werkzeug)</li>
+<li><strong>Puerto:</strong> 5001</li>
+<li><strong>Workers:</strong> 1 (single-threaded)</li>
+<li><strong>Características:</strong> Debug mode, auto-reload</li>
+</ul>
+<h3 id="modo-producción-fase-3"><a class="header" href="#modo-producción-fase-3">Modo Producción (Fase 3)</a></h3>
+<ul>
+<li><strong>Servidor:</strong> Gunicorn (WSGI server)</li>
+<li><strong>Puerto:</strong> 3000 (mapeado desde 8000 del contenedor)</li>
+<li><strong>Workers:</strong> 2 (multi-process)</li>
+<li><strong>Características:</strong> Optimizado para producción, sin debug mode</li>
+</ul>
+<h2 id="resultados-de-la-fase-3"><a class="header" href="#resultados-de-la-fase-3">Resultados de la Fase 3</a></h2>
+<p>✅ <strong>Servidor configurado correctamente:</strong> Docker Compose desplegado sin errores<br />
+✅ <strong>Gunicorn funcionando:</strong> El servidor WSGI está corriendo con 2 workers<br />
+✅ <strong>API accesible:</strong> La API responde correctamente en <code>http://localhost:3000</code><br />
+✅ <strong>Swagger UI funcionando:</strong> La documentación interactiva está accesible<br />
+✅ <strong>Endpoints verificados:</strong> Los endpoints principales funcionan correctamente<br />
+✅ <strong>Healthcheck pasando:</strong> El contenedor está marcado como healthy</p>
+<h2 id="evidencias"><a class="header" href="#evidencias">Evidencias</a></h2>
+<ul>
+<li>Captura de <code>docker compose ps</code> mostrando el contenedor corriendo</li>
+<li>Captura de los logs de Gunicorn mostrando workers iniciados</li>
+<li>Captura de Swagger UI funcionando en <code>http://localhost:3000/</code></li>
+<li>Captura de <code>POST /devices</code> ejecutado desde Swagger UI con respuesta exitosa</li>
+<li>Captura de <code>GET /devices</code> mostrando dispositivos conectados</li>
+<li>Captura de respuesta HTTP mostrando <code>server: gunicorn</code></li>
+</ul>
+<h2 id="comandos-Útiles"><a class="header" href="#comandos-Útiles">Comandos Útiles</a></h2>
+<pre><code class="language-bash"># Iniciar servicios
+docker compose up -d
+
+# Ver logs
+docker compose logs -f tictactoe-api
+
+# Ver estado
+docker compose ps
+
+# Detener servicios
+docker compose down
+
+# Reconstruir imagen
+docker compose build --no-cache
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="fase2.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="fase4.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="fase2.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="fase4.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+        <script src="ace.js"></script>
+        <script src="mode-rust.js"></script>
+        <script src="editor.js"></script>
+        <script src="theme-dawn.js"></script>
+        <script src="theme-tomorrow_night.js"></script>
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

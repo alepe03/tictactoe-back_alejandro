@@ -1,0 +1,1316 @@
+<!DOCTYPE HTML>
+<html lang="es" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Despliegue de Aplicaciones - TicTacToe API</title>
+        <meta name="robots" content="noindex">
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Memoria técnica del despliegue y configuración de un servidor de aplicaciones">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Despliegue de Aplicaciones - TicTacToe API</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="introducción"><a class="header" href="#introducción">Introducción</a></h1>
+<h2 id="descripción-del-proyecto"><a class="header" href="#descripción-del-proyecto">Descripción del Proyecto</a></h2>
+<p>Este proyecto tiene como objetivo realizar el despliegue y configuración integral de un servidor de aplicaciones funcional, capaz de ejecutar y exponer una API backend a través de HTTP, aplicando criterios de modularidad, seguridad y escalabilidad.</p>
+<h2 id="aplicación-tictactoe"><a class="header" href="#aplicación-tictactoe">Aplicación TicTacToe</a></h2>
+<p>La aplicación utilizada es <strong>TicTacToe API</strong>, una API REST del clásico juego de tres en raya desarrollada con Flask y Flask-RESTX. Esta API proporciona endpoints para:</p>
+<ul>
+<li>Registro y gestión de dispositivos</li>
+<li>Creación y gestión de partidas</li>
+<li>Realización de movimientos en el tablero</li>
+<li>Consulta de estadísticas de jugadores</li>
+</ul>
+<h2 id="objetivos-del-proyecto"><a class="header" href="#objetivos-del-proyecto">Objetivos del Proyecto</a></h2>
+<p>El desarrollo se ha llevado a cabo en <strong>cuatro fases</strong>:</p>
+<ol>
+<li><strong>Preparación del entorno de ejecución</strong>: Configuración local de la aplicación</li>
+<li><strong>Instalación del servidor de aplicaciones</strong>: Contenedorización con Docker y Gunicorn</li>
+<li><strong>Configuración básica del servidor</strong>: Despliegue con Docker Compose</li>
+<li><strong>Configuración avanzada</strong>: Múltiples instancias con balanceador de carga y sticky sessions</li>
+</ol>
+<h2 id="estructura-de-la-documentación"><a class="header" href="#estructura-de-la-documentación">Estructura de la Documentación</a></h2>
+<p>Esta memoria técnica documenta todo el proceso de despliegue, incluyendo:</p>
+<ul>
+<li>Descripción del entorno y herramientas utilizadas</li>
+<li>Comandos ejecutados durante cada fase</li>
+<li>Configuraciones del servidor de aplicaciones</li>
+<li>Evidencias mediante capturas de pantalla</li>
+<li>Reflexión sobre el proceso y mejoras futuras</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="entorno-y-herramientas"><a class="header" href="#entorno-y-herramientas">Entorno y Herramientas</a></h1>
+<h2 id="descripción-del-entorno"><a class="header" href="#descripción-del-entorno">Descripción del Entorno</a></h2>
+<p>El despliegue se ha realizado en un entorno macOS (darwin 25.0.0) utilizando contenedores Docker para garantizar la reproducibilidad y aislamiento de la aplicación.</p>
+<h2 id="herramientas-utilizadas"><a class="header" href="#herramientas-utilizadas">Herramientas Utilizadas</a></h2>
+<h3 id="gestión-de-paquetes-y-entorno"><a class="header" href="#gestión-de-paquetes-y-entorno">Gestión de Paquetes y Entorno</a></h3>
+<ul>
+<li><strong>Python 3.12+</strong>: Lenguaje de programación de la aplicación</li>
+<li><strong>uv</strong>: Gestor de paquetes Python moderno y rápido (<a href="https://docs.astral.sh/uv/getting-started/features/">Documentación</a>)
+<ul>
+<li>Ventajas: Velocidad, gestión de entornos virtuales, compatibilidad con pip</li>
+</ul>
+</li>
+</ul>
+<h3 id="framework-y-servidores"><a class="header" href="#framework-y-servidores">Framework y Servidores</a></h3>
+<ul>
+<li><strong>Flask 3.1.2</strong>: Framework web ligero para Python (<a href="https://flask.palletsprojects.com/en/stable/">Documentación</a>)
+<ul>
+<li>Ventajas: Simple, flexible, extensible</li>
+</ul>
+</li>
+<li><strong>Flask-RESTX 1.3.2</strong>: Extensión para crear APIs REST con documentación Swagger automática</li>
+<li><strong>Gunicorn 23.0.0</strong>: Servidor WSGI de producción para Flask
+<ul>
+<li>Ventajas: Estable, maneja múltiples workers, eficiente en producción</li>
+</ul>
+</li>
+</ul>
+<h3 id="testing"><a class="header" href="#testing">Testing</a></h3>
+<ul>
+<li><strong>pytest 8.4.2</strong>: Framework de testing para Python (<a href="https://docs.pytest.org/en/stable/">Documentación</a>)</li>
+<li><strong>pytest-flask 1.3.0</strong>: Extensión de pytest para aplicaciones Flask</li>
+</ul>
+<h3 id="contenedores-y-orquestación"><a class="header" href="#contenedores-y-orquestación">Contenedores y Orquestación</a></h3>
+<ul>
+<li><strong>Docker</strong>: Contenedores para aislamiento y reproducibilidad
+<ul>
+<li>Ventajas: Aislamiento completo, reproducibilidad, fácil despliegue</li>
+</ul>
+</li>
+<li><strong>Docker Compose v2.39.4</strong>: Orquestación de múltiples contenedores
+<ul>
+<li>Ventajas: Definición de servicios, redes y volúmenes en un solo archivo</li>
+</ul>
+</li>
+</ul>
+<h3 id="proxy-reverso-y-balanceador"><a class="header" href="#proxy-reverso-y-balanceador">Proxy Reverso y Balanceador</a></h3>
+<ul>
+<li><strong>Nginx 1.29.3</strong>: Servidor web y proxy reverso
+<ul>
+<li>Ventajas: Alto rendimiento, balanceo de carga, sticky sessions con ip_hash</li>
+</ul>
+</li>
+</ul>
+<h3 id="documentación"><a class="header" href="#documentación">Documentación</a></h3>
+<ul>
+<li><strong>Swagger UI</strong>: Interfaz interactiva para documentación de APIs (<a href="https://swagger.io/tools/swagger-ui/">Documentación</a>)
+<ul>
+<li>Integrado automáticamente por Flask-RESTX</li>
+</ul>
+</li>
+</ul>
+<h2 id="justificación-de-las-elecciones"><a class="header" href="#justificación-de-las-elecciones">Justificación de las Elecciones</a></h2>
+<h3 id="por-qué-gunicorn"><a class="header" href="#por-qué-gunicorn">¿Por qué Gunicorn?</a></h3>
+<ul>
+<li><strong>Servidor WSGI de producción</strong>: Diseñado específicamente para aplicaciones Python en producción</li>
+<li><strong>Múltiples workers</strong>: Permite manejar varias peticiones concurrentes</li>
+<li><strong>Estabilidad</strong>: Ampliamente usado y probado en producción</li>
+<li><strong>Configuración sencilla</strong>: Fácil de configurar y personalizar</li>
+</ul>
+<h3 id="por-qué-docker"><a class="header" href="#por-qué-docker">¿Por qué Docker?</a></h3>
+<ul>
+<li><strong>Reproducibilidad</strong>: Garantiza que la aplicación funcione igual en cualquier entorno</li>
+<li><strong>Aislamiento</strong>: Evita conflictos con otras aplicaciones o dependencias del sistema</li>
+<li><strong>Escalabilidad</strong>: Facilita el despliegue de múltiples instancias</li>
+<li><strong>Portabilidad</strong>: Fácil de desplegar en diferentes plataformas</li>
+</ul>
+<h3 id="por-qué-nginx-como-proxy-reverso"><a class="header" href="#por-qué-nginx-como-proxy-reverso">¿Por qué Nginx como Proxy Reverso?</a></h3>
+<ul>
+<li><strong>Alto rendimiento</strong>: Muy eficiente en el manejo de peticiones</li>
+<li><strong>Balanceo de carga</strong>: Distribuye las peticiones entre múltiples instancias</li>
+<li><strong>Sticky sessions</strong>: Implementación sencilla con <code>ip_hash</code> para garantizar consistencia</li>
+<li><strong>Configuración flexible</strong>: Permite personalizar headers, timeouts, etc.</li>
+</ul>
+<h2 id="versiones-específicas"><a class="header" href="#versiones-específicas">Versiones Específicas</a></h2>
+<pre><code class="language-bash">Docker version 28.4.0
+Docker Compose version v2.39.4-desktop.1
+Python 3.13.7
+Gunicorn 23.0.0
+Nginx 1.29.3
+Flask 3.1.2
+Flask-RESTX 1.3.2
+</code></pre>
+<h2 id="estructura-del-proyecto"><a class="header" href="#estructura-del-proyecto">Estructura del Proyecto</a></h2>
+<pre><code>tictactoe-back/
+├── main.py                    # Aplicación Flask principal
+├── wsgi.py                    # Entry point para Gunicorn
+├── test_main.py              # Tests con pytest
+├── pyproject.toml            # Configuración de dependencias (uv)
+├── Dockerfile                # Imagen Docker para producción
+├── docker-compose.yml        # Configuración básica (Fase 3)
+├── docker-compose.advanced.yml  # Configuración avanzada (Fase 4)
+├── nginx.conf                # Configuración base de Nginx
+├── nginx-sticky.conf         # Configuración de Nginx con sticky sessions
+└── Makefile                  # Comandos útiles
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="fase-1-preparación-del-entorno-de-ejecución"><a class="header" href="#fase-1-preparación-del-entorno-de-ejecución">Fase 1: Preparación del Entorno de Ejecución</a></h1>
+<h2 id="objetivo"><a class="header" href="#objetivo">Objetivo</a></h2>
+<p>Preparar la aplicación TicTacToe con toda su estructura de proyecto, verificar su correcto funcionamiento en local y comprobar que la API responde adecuadamente a las peticiones básicas.</p>
+<h2 id="pasos-realizados"><a class="header" href="#pasos-realizados">Pasos Realizados</a></h2>
+<h3 id="1-instalación-de-dependencias"><a class="header" href="#1-instalación-de-dependencias">1. Instalación de Dependencias</a></h3>
+<p>Primeramente, instalamos todas las dependencias necesarias utilizando <code>uv</code>:</p>
+<pre><code class="language-bash">uv sync
+</code></pre>
+<p>Este comando:</p>
+<ul>
+<li>Crea un entorno virtual en <code>.venv</code></li>
+<li>Resuelve las dependencias del proyecto</li>
+<li>Instala los paquetes necesarios (Flask, Flask-RESTX, Gunicorn, pytest, etc.)</li>
+</ul>
+<p><strong>Resultado:</strong> Se instalaron 22 paquetes correctamente, incluyendo:</p>
+<ul>
+<li><code>flask==3.1.2</code></li>
+<li><code>flask-restx==1.3.2</code></li>
+<li><code>gunicorn==23.0.0</code></li>
+<li><code>pytest==8.4.2</code></li>
+<li>Y otras dependencias relacionadas</li>
+</ul>
+<p><img src="images/Captura%20de%20pantalla%202025-11-14%20a%20las%2010.44.00.png" alt="Instalación de dependencias con uv sync" /></p>
+<h3 id="2-ejecución-de-tests"><a class="header" href="#2-ejecución-de-tests">2. Ejecución de Tests</a></h3>
+<p>Para verificar que la aplicación funciona correctamente, ejecutamos los tests:</p>
+<pre><code class="language-bash">uv run pytest -v
+</code></pre>
+<p><strong>Resultado:</strong> Todos los tests pasaron correctamente:</p>
+<pre><code>test_register_device PASSED [ 8%]
+test_unregister_device PASSED [16%]
+test_list_devices PASSED [25%]
+test_create_match PASSED [33%]
+test_make_move_and_turn_change PASSED [41%]
+test_invalid_turn PASSED [50%]
+test_cell_occupied PASSED [58%]
+test_sync_game PASSED [66%]
+test_device_status_connected PASSED [75%]
+test_device_status_disconnected PASSED [83%]
+test_device_stats_global PASSED [91%]
+test_full_game_flow_x_wins PASSED [100%]
+
+======================== 12 passed in 0.70s ========================
+</code></pre>
+<p>Esto confirma que la aplicación funciona correctamente y todos los endpoints están implementados como se espera.</p>
+<p><img src="images/Captura%20de%20pantalla%202025-11-14%20a%20las%2010.44.29.png" alt="Tests ejecutándose y pasando correctamente" /></p>
+<h3 id="3-ejecución-de-la-aplicación-en-modo-desarrollo"><a class="header" href="#3-ejecución-de-la-aplicación-en-modo-desarrollo">3. Ejecución de la Aplicación en Modo Desarrollo</a></h3>
+<p>Ejecutamos la aplicación en modo desarrollo:</p>
+<pre><code class="language-bash">uv run python main.py
+</code></pre>
+<p><strong>Nota importante:</strong> En macOS, el puerto 5000 está ocupado por AirPlay (sistema de Apple), por lo que modificamos la aplicación para usar el puerto 5001.</p>
+<p><strong>Resultado:</strong> La aplicación Flask se inicia correctamente:</p>
+<pre><code> * Serving Flask app 'main'
+ * Debug mode: on
+ * Running on http://127.0.0.1:5001
+</code></pre>
+<p>La API queda accesible en <code>http://localhost:5001</code></p>
+<p><img src="images/Captura%20de%20pantalla%202025-11-14%20a%20las%2010.57.20.png" alt="Flask corriendo en modo desarrollo" /></p>
+<h3 id="4-prueba-de-endpoints-básicos"><a class="header" href="#4-prueba-de-endpoints-básicos">4. Prueba de Endpoints Básicos</a></h3>
+<p>Probamos los endpoints utilizando Swagger UI, la interfaz de documentación interactiva integrada.</p>
+<h4 id="41-acceso-a-swagger-ui"><a class="header" href="#41-acceso-a-swagger-ui">4.1. Acceso a Swagger UI</a></h4>
+<p>Abrimos el navegador en <code>http://localhost:5001/</code> y verificamos que Swagger UI carga correctamente, mostrando toda la documentación de la API.</p>
+<p><img src="images/Captura%20de%20pantalla%202025-11-14%20a%20las%2010.53.42.png" alt="Swagger UI funcionando en localhost:5001" /></p>
+<h4 id="42-registro-de-un-dispositivo"><a class="header" href="#42-registro-de-un-dispositivo">4.2. Registro de un Dispositivo</a></h4>
+<p>Mediante Swagger UI, ejecutamos el endpoint <code>POST /devices</code>:</p>
+<ul>
+<li><strong>Request body:</strong></li>
+</ul>
+<pre><code class="language-json">{
+  "Alejandro": "Dispositivo1"
+}
+</code></pre>
+<ul>
+<li><strong>Respuesta:</strong></li>
+</ul>
+<pre><code class="language-json">{
+  "device_id": "af526220-99fd-4905-8f00-d04e9751aa12"
+}
+</code></pre>
+<ul>
+<li><strong>Código de estado:</strong> <code>201 Created</code></li>
+<li><strong>Server:</strong> <code>Werkzeug/3.1.3 Python/3.13.7</code> (servidor de desarrollo Flask)</li>
+</ul>
+<p>Esto confirma que el endpoint funciona correctamente y asigna un identificador único a cada dispositivo.</p>
+<p><img src="images/Captura%20de%20pantalla%202025-11-14%20a%20las%2010.54.17.png" alt="Registro de dispositivo desde Swagger UI" /></p>
+<h4 id="43-listado-de-dispositivos"><a class="header" href="#43-listado-de-dispositivos">4.3. Listado de Dispositivos</a></h4>
+<p>Ejecutamos el endpoint <code>GET /devices</code> para listar todos los dispositivos conectados:</p>
+<ul>
+<li><strong>Respuesta:</strong></li>
+</ul>
+<pre><code class="language-json">{
+  "connected_devices": [
+    "cc8c0daf-4f9e-47fc-919f-5a16e20fe1f5",
+    "af526220-99fd-4905-8f00-d04e9751aa12"
+  ]
+}
+</code></pre>
+<ul>
+<li><strong>Código de estado:</strong> <code>200 OK</code></li>
+</ul>
+<p>Esto confirma que la gestión de dispositivos funciona correctamente.</p>
+<p><img src="images/Captura%20de%20pantalla%202025-11-14%20a%20las%2010.54.17.png" alt="Listado de dispositivos desde Swagger UI" /></p>
+<h2 id="resultados-de-la-fase-1"><a class="header" href="#resultados-de-la-fase-1">Resultados de la Fase 1</a></h2>
+<p>✅ <strong>Estructura completa del proyecto:</strong> Todos los archivos necesarios están presentes<br />
+✅ <strong>Dependencias instaladas:</strong> Todas las dependencias se instalaron correctamente<br />
+✅ <strong>Tests pasando:</strong> Los 12 tests pasan sin errores<br />
+✅ <strong>API funcionando en local:</strong> La aplicación Flask se ejecuta correctamente en el puerto 5001<br />
+✅ <strong>Swagger UI accesible:</strong> La documentación interactiva está disponible y funcional<br />
+✅ <strong>Endpoints verificados:</strong> Los endpoints básicos responden correctamente</p>
+<h2 id="evidencias"><a class="header" href="#evidencias">Evidencias</a></h2>
+<ul>
+<li>Captura de la instalación de dependencias con <code>uv sync</code></li>
+<li>Captura de todos los tests pasando correctamente</li>
+<li>Captura de la aplicación Flask corriendo en modo desarrollo</li>
+<li>Captura de Swagger UI funcionando en <code>http://localhost:5001/</code></li>
+<li>Captura de registro de dispositivo (<code>POST /devices</code>) con respuesta exitosa</li>
+<li>Captura de listado de dispositivos (<code>GET /devices</code>) mostrando dispositivos conectados</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="fase-2-instalación-del-servidor-de-aplicaciones"><a class="header" href="#fase-2-instalación-del-servidor-de-aplicaciones">Fase 2: Instalación del Servidor de Aplicaciones</a></h1>
+<h2 id="objetivo-1"><a class="header" href="#objetivo-1">Objetivo</a></h2>
+<p>Instalar un servidor o entorno de ejecución adecuado para la aplicación en un contenedor Docker, justificando la elección del entorno y documentando el proceso de instalación.</p>
+<h2 id="justificación-de-la-elección"><a class="header" href="#justificación-de-la-elección">Justificación de la Elección</a></h2>
+<h3 id="gunicorn-como-servidor-wsgi"><a class="header" href="#gunicorn-como-servidor-wsgi">Gunicorn como Servidor WSGI</a></h3>
+<p>Elegimos <strong>Gunicorn</strong> como servidor WSGI de producción por las siguientes razones:</p>
+<ol>
+<li><strong>Servidor de producción:</strong> Diseñado específicamente para ejecutar aplicaciones Python en producción</li>
+<li><strong>Múltiples workers:</strong> Permite manejar múltiples peticiones concurrentes de forma eficiente</li>
+<li><strong>Estabilidad:</strong> Ampliamente usado y probado en producción</li>
+<li><strong>Compatibilidad:</strong> Totalmente compatible con Flask y otras aplicaciones WSGI</li>
+<li><strong>Configuración sencilla:</strong> Fácil de configurar y personalizar según las necesidades</li>
+</ol>
+<h3 id="docker-como-contenedorización"><a class="header" href="#docker-como-contenedorización">Docker como Contenedorización</a></h3>
+<p>Elegimos <strong>Docker</strong> por las siguientes razones:</p>
+<ol>
+<li><strong>Reproducibilidad:</strong> Garantiza que la aplicación funcione igual en cualquier entorno</li>
+<li><strong>Aislamiento:</strong> Evita conflictos con otras aplicaciones o dependencias del sistema</li>
+<li><strong>Escalabilidad:</strong> Facilita el despliegue de múltiples instancias</li>
+<li><strong>Portabilidad:</strong> Fácil de desplegar en diferentes plataformas (Linux, macOS, Windows)</li>
+<li><strong>Gestión de dependencias:</strong> Simplifica la gestión de dependencias del sistema</li>
+</ol>
+<h3 id="imagen-base-python-312-slim"><a class="header" href="#imagen-base-python-312-slim">Imagen Base Python 3.12-slim</a></h3>
+<p>Elegimos <strong>python:3.12-slim</strong> como imagen base porque:</p>
+<ul>
+<li><strong>Ligera:</strong> Versión optimizada que ocupa menos espacio</li>
+<li><strong>Actual:</strong> Versión moderna de Python con mejor rendimiento</li>
+<li><strong>Estable:</strong> Versión estable y probada</li>
+</ul>
+<h2 id="proceso-de-instalación"><a class="header" href="#proceso-de-instalación">Proceso de Instalación</a></h2>
+<h3 id="1-verificación-de-docker"><a class="header" href="#1-verificación-de-docker">1. Verificación de Docker</a></h3>
+<p>Primero verificamos que Docker está instalado y funcionando:</p>
+<pre><code class="language-bash">docker --version
+docker compose version
+</code></pre>
+<p><strong>Resultado:</strong></p>
+<pre><code>Docker version 28.4.0, build d8eb465
+Docker Compose version v2.39.4-desktop.1
+</code></pre>
+<p><img src="images/Captura%20de%20pantalla%202025-11-14%20a%20las%2010.58.49.png" alt="Versiones de Docker y Docker Compose" /></p>
+<h3 id="2-construcción-de-la-imagen-docker"><a class="header" href="#2-construcción-de-la-imagen-docker">2. Construcción de la Imagen Docker</a></h3>
+<p>Construimos la imagen Docker con el siguiente comando:</p>
+<pre><code class="language-bash">docker build -t tictactoe-api:latest .
+</code></pre>
+<p>El Dockerfile realiza las siguientes operaciones:</p>
+<ol>
+<li><strong>Imagen base:</strong> <code>FROM python:3.12-slim</code></li>
+<li><strong>Instalación de uv:</strong> <code>RUN pip install --no-cache-dir uv</code></li>
+<li><strong>Copia de dependencias:</strong> <code>COPY pyproject.toml uv.lock ./</code></li>
+<li><strong>Instalación de dependencias:</strong> <code>RUN uv sync --frozen</code></li>
+<li><strong>Copia del código:</strong> <code>COPY . .</code></li>
+<li><strong>Exposición del puerto:</strong> <code>EXPOSE 8000</code></li>
+<li><strong>Comando de inicio:</strong> <code>CMD ["uv", "run", "gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "wsgi:app"]</code></li>
+</ol>
+<p><strong>Parámetros de Gunicorn:</strong></p>
+<ul>
+<li><code>--bind 0.0.0.0:8000</code>: Escucha en todas las interfaces en el puerto 8000</li>
+<li><code>--workers 2</code>: Dos workers para manejar múltiples peticiones</li>
+<li><code>--timeout 120</code>: Timeout de 120 segundos</li>
+<li><code>--access-logfile -</code>: Logs de acceso a stdout</li>
+<li><code>--error-logfile -</code>: Logs de error a stderr</li>
+<li><code>wsgi:app</code>: Módulo wsgi, aplicación app</li>
+</ul>
+<p><strong>Resultado del build:</strong></p>
+<pre><code>[+] Building 5.4s (12/12) FINISHED
+ =&gt; [1/6] FROM docker.io/library/python:3.12-slim
+ =&gt; [2/6] WORKDIR /app
+ =&gt; [3/6] RUN pip install --no-cache-dir uv
+ =&gt; [4/6] COPY pyproject.toml uv.lock ./
+ =&gt; [5/6] RUN uv sync --frozen
+ =&gt; [6/6] COPY . .
+ =&gt; exporting to image
+Successfully built tictactoe-api:latest
+</code></pre>
+<p><img src="images/Captura%20de%20pantalla%202025-11-14%20a%20las%2010.59.03.png" alt="Proceso de construcción de la imagen Docker" /></p>
+<h3 id="3-verificación-de-la-imagen"><a class="header" href="#3-verificación-de-la-imagen">3. Verificación de la Imagen</a></h3>
+<p>Verificamos que la imagen se creó correctamente:</p>
+<pre><code class="language-bash">docker images | grep tictactoe
+</code></pre>
+<p><strong>Resultado:</strong></p>
+<pre><code>tictactoe-api   latest   8257c3cb36d8   10 seconds ago   313MB
+</code></pre>
+<p>La imagen tiene un tamaño de 313MB y contiene toda la aplicación con sus dependencias.</p>
+<p><img src="images/Captura%20de%20pantalla%202025-11-14%20a%20las%2010.59.03.png" alt="Imagen Docker creada correctamente" /></p>
+<h3 id="4-prueba-de-la-imagen-opcional"><a class="header" href="#4-prueba-de-la-imagen-opcional">4. Prueba de la Imagen (Opcional)</a></h3>
+<p>Realizamos una prueba rápida para verificar que la imagen funciona correctamente:</p>
+<pre><code class="language-bash">docker run --rm -p 8000:8000 tictactoe-api:latest
+</code></pre>
+<p><strong>Resultado:</strong> Gunicorn se inicia correctamente:</p>
+<pre><code>[2025-11-14 10:58:17 +0000] [10] [INFO] Starting gunicorn 23.0.0
+[2025-11-14 10:58:17 +0000] [10] [INFO] Listening at: http://0.0.0.0:8000 (10)
+[2025-11-14 10:58:17 +0000] [10] [INFO] Using worker: sync
+[2025-11-14 10:58:17 +0000] [11] [INFO] Booting worker with pid: 11
+[2025-11-14 10:58:17 +0000] [12] [INFO] Booting worker with pid: 12
+</code></pre>
+<p>Verificamos que responde correctamente:</p>
+<pre><code class="language-bash">curl http://localhost:8000/
+</code></pre>
+<p><strong>Resultado:</strong> La API responde correctamente con el HTML de Swagger UI.</p>
+<p><img src="images/Captura%20de%20pantalla%202025-11-14%20a%20las%2010.59.03.png" alt="Gunicorn iniciándose correctamente" /></p>
+<h2 id="configuración-del-dockerfile"><a class="header" href="#configuración-del-dockerfile">Configuración del Dockerfile</a></h2>
+<p>El Dockerfile utilizado tiene la siguiente estructura:</p>
+<pre><code class="language-dockerfile">FROM python:3.12-slim
+WORKDIR /app
+RUN pip install --no-cache-dir uv
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen
+COPY . .
+EXPOSE 8000
+CMD ["uv", "run", "gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "wsgi:app"]
+</code></pre>
+<h3 id="explicación-de-las-capas"><a class="header" href="#explicación-de-las-capas">Explicación de las Capas</a></h3>
+<ol>
+<li><strong>Capa 1:</strong> Imagen base Python 3.12-slim</li>
+<li><strong>Capa 2:</strong> Directorio de trabajo <code>/app</code></li>
+<li><strong>Capa 3:</strong> Instalación de <code>uv</code></li>
+<li><strong>Capa 4:</strong> Copia de archivos de dependencias</li>
+<li><strong>Capa 5:</strong> Instalación de dependencias (esta capa se cachea si no cambian las dependencias)</li>
+<li><strong>Capa 6:</strong> Copia del código de la aplicación</li>
+</ol>
+<p>Esta estructura optimiza el uso de la caché de Docker, permitiendo reconstruir más rápido cuando solo cambia el código.</p>
+<h2 id="resultados-de-la-fase-2"><a class="header" href="#resultados-de-la-fase-2">Resultados de la Fase 2</a></h2>
+<p>✅ <strong>Docker instalado y funcionando:</strong> Docker y Docker Compose están correctamente instalados<br />
+✅ <strong>Imagen construida correctamente:</strong> La imagen Docker se construyó sin errores<br />
+✅ <strong>Gunicorn configurado:</strong> El servidor WSGI está correctamente configurado<br />
+✅ <strong>Verificación exitosa:</strong> La imagen funciona correctamente y la API responde</p>
+<h2 id="evidencias-1"><a class="header" href="#evidencias-1">Evidencias</a></h2>
+<ul>
+<li>Captura de las versiones de Docker y Docker Compose</li>
+<li>Captura del proceso de construcción de la imagen Docker</li>
+<li>Captura de la imagen creada (<code>docker images</code>)</li>
+<li>Captura de Gunicorn iniciándose correctamente</li>
+<li>Captura de la API respondiendo desde el contenedor</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="fase-3-configuración-básica-del-servidor"><a class="header" href="#fase-3-configuración-básica-del-servidor">Fase 3: Configuración Básica del Servidor</a></h1>
+<h2 id="objetivo-2"><a class="header" href="#objetivo-2">Objetivo</a></h2>
+<p>Configurar el servidor para ejecutar la API TicTacToe y exponerla en <code>localhost:3000</code>, verificando el correcto funcionamiento de los endpoints.</p>
+<h2 id="configuración-con-docker-compose"><a class="header" href="#configuración-con-docker-compose">Configuración con Docker Compose</a></h2>
+<h3 id="archivo-docker-composeyml"><a class="header" href="#archivo-docker-composeyml">Archivo docker-compose.yml</a></h3>
+<p>Creamos un archivo <code>docker-compose.yml</code> para simplificar el despliegue:</p>
+<pre><code class="language-yaml">services:
+  tictactoe-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tictactoe-api
+    ports:
+      - "3000:8000"  # Puerto host:puerto contenedor
+    environment:
+      - FLASK_ENV=production
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+</code></pre>
+<p><strong>Configuración explicada:</strong></p>
+<ul>
+<li><strong>build:</strong> Construye la imagen desde el Dockerfile actual</li>
+<li><strong>container_name:</strong> Nombre del contenedor</li>
+<li><strong>ports:</strong> Mapea el puerto 3000 del host al puerto 8000 del contenedor</li>
+<li><strong>environment:</strong> Variable de entorno para modo producción</li>
+<li><strong>restart:</strong> Reinicia automáticamente el contenedor si falla</li>
+<li><strong>healthcheck:</strong> Verifica periódicamente que la API está respondiendo</li>
+</ul>
+<h2 id="proceso-de-despliegue"><a class="header" href="#proceso-de-despliegue">Proceso de Despliegue</a></h2>
+<h3 id="1-construcción-de-la-imagen"><a class="header" href="#1-construcción-de-la-imagen">1. Construcción de la Imagen</a></h3>
+<pre><code class="language-bash">docker compose build
+</code></pre>
+<p>Esto construye la imagen utilizando el Dockerfile y las dependencias especificadas.</p>
+<h3 id="2-inicio-del-servicio"><a class="header" href="#2-inicio-del-servicio">2. Inicio del Servicio</a></h3>
+<pre><code class="language-bash">docker compose up -d
+</code></pre>
+<p>El flag <code>-d</code> ejecuta el contenedor en modo detached (en segundo plano).</p>
+<p><strong>Resultado:</strong></p>
+<pre><code>[+] Running 2/2
+ ✔ Network tictactoe-back_default  Created    0.0s 
+ ✔ Container tictactoe-api         Started    0.3s
+</code></pre>
+<h3 id="3-verificación-del-estado"><a class="header" href="#3-verificación-del-estado">3. Verificación del Estado</a></h3>
+<p>Verificamos que el contenedor está corriendo:</p>
+<pre><code class="language-bash">docker compose ps
+</code></pre>
+<p><strong>Resultado:</strong></p>
+<pre><code>NAME              IMAGE                            COMMAND                  STATUS          PORTS
+tictactoe-api     tictactoe-back-tictactoe-api     "uv run gunicorn --b…"   Up (healthy)    0.0.0.0:3000-&gt;8000/tcp
+</code></pre>
+<p><img src="images/Captura%20de%20pantalla%202025-11-14%20a%20las%2011.05.10.png" alt="Contenedores corriendo con Docker Compose" /></p>
+<p>El contenedor está en estado <code>Up (healthy)</code>, indicando que:</p>
+<ul>
+<li>El contenedor está corriendo</li>
+<li>El healthcheck está pasando correctamente</li>
+<li>Gunicorn está funcionando correctamente</li>
+</ul>
+<h3 id="4-verificación-de-logs"><a class="header" href="#4-verificación-de-logs">4. Verificación de Logs</a></h3>
+<p>Revisamos los logs para confirmar que Gunicorn se inició correctamente:</p>
+<pre><code class="language-bash">docker compose logs tictactoe-api
+</code></pre>
+<p><strong>Resultado:</strong></p>
+<pre><code>tictactoe-api  | [2025-11-14 11:02:01 +0000] [10] [INFO] Starting gunicorn 23.0.0
+tictactoe-api  | [2025-11-14 11:02:01 +0000] [10] [INFO] Listening at: http://0.0.0.0:8000 (10)
+tictactoe-api  | [2025-11-14 11:02:01 +0000] [10] [INFO] Using worker: sync
+tictactoe-api  | [2025-11-14 11:02:01 +0000] [11] [INFO] Booting worker with pid: 11
+tictactoe-api  | [2025-11-14 11:02:01 +0000] [12] [INFO] Booting worker with pid: 12
+</code></pre>
+<p>Esto confirma que:</p>
+<ul>
+<li>Gunicorn 23.0.0 se inició correctamente</li>
+<li>Está escuchando en el puerto 8000 dentro del contenedor</li>
+<li>Tiene 2 workers activos (pid 11 y 12)</li>
+</ul>
+<p><img src="images/Captura%20de%20pantalla%202025-11-14%20a%20las%2011.05.10.png" alt="Logs de Gunicorn con workers iniciados" /></p>
+<h2 id="verificación-de-funcionamiento"><a class="header" href="#verificación-de-funcionamiento">Verificación de Funcionamiento</a></h2>
+<h3 id="1-acceso-a-swagger-ui"><a class="header" href="#1-acceso-a-swagger-ui">1. Acceso a Swagger UI</a></h3>
+<p>Abrimos el navegador en <code>http://localhost:3000/</code> y verificamos que Swagger UI carga correctamente.</p>
+<p><img src="images/Captura%20de%20pantalla%202025-11-14%20a%20las%2011.07.36.png" alt="Swagger UI funcionando en localhost:3000" /></p>
+<h3 id="2-prueba-de-endpoints"><a class="header" href="#2-prueba-de-endpoints">2. Prueba de Endpoints</a></h3>
+<h4 id="21-registro-de-dispositivo"><a class="header" href="#21-registro-de-dispositivo">2.1. Registro de Dispositivo</a></h4>
+<p>Ejecutamos <code>POST /devices</code> desde Swagger UI:</p>
+<ul>
+<li><strong>Request:</strong></li>
+</ul>
+<pre><code class="language-json">{
+  "alias": "Juan"
+}
+</code></pre>
+<ul>
+<li><strong>Respuesta:</strong></li>
+</ul>
+<pre><code class="language-json">{
+  "device_id": "47dabe4c-8473-4f67-85d1-9f262a3d2433"
+}
+</code></pre>
+<ul>
+<li><strong>Código:</strong> <code>201 Created</code></li>
+<li><strong>Server:</strong> <code>gunicorn</code> (confirmando que está usando Gunicorn, no Flask dev server)</li>
+</ul>
+<p><img src="images/Captura%20de%20pantalla%202025-11-14%20a%20las%2011.07.36.png" alt="POST /devices ejecutado mostrando server: gunicorn" /></p>
+<h4 id="22-listado-de-dispositivos"><a class="header" href="#22-listado-de-dispositivos">2.2. Listado de Dispositivos</a></h4>
+<p>Ejecutamos <code>GET /devices</code>:</p>
+<ul>
+<li><strong>Respuesta:</strong></li>
+</ul>
+<pre><code class="language-json">{
+  "connected_devices": [
+    "47dabe4c-8473-4f67-85d1-9f262a3d2433",
+    "8cd4b2e2-6c21-4493-877d-97f283884ff8"
+  ]
+}
+</code></pre>
+<ul>
+<li><strong>Código:</strong> <code>200 OK</code></li>
+<li><strong>Server:</strong> <code>gunicorn</code></li>
+</ul>
+<p><img src="images/Captura%20de%20pantalla%202025-11-14%20a%20las%2011.10.00.png" alt="GET /devices ejecutado mostrando server: gunicorn" /></p>
+<h3 id="3-pruebas-con-curl"><a class="header" href="#3-pruebas-con-curl">3. Pruebas con curl</a></h3>
+<p>También realizamos pruebas con curl desde la terminal:</p>
+<pre><code class="language-bash">curl http://localhost:3000/
+</code></pre>
+<p><strong>Resultado:</strong> Respuesta HTML de Swagger UI correcta.</p>
+<pre><code class="language-bash">curl -X POST http://localhost:3000/devices \
+  -H "Content-Type: application/json" \
+  -d '{"alias": "TestDevice"}'
+</code></pre>
+<p><strong>Resultado:</strong> <code>{"device_id": "..."}</code> con código <code>201 Created</code>.</p>
+<h2 id="comparación-desarrollo-vs-producción"><a class="header" href="#comparación-desarrollo-vs-producción">Comparación: Desarrollo vs Producción</a></h2>
+<h3 id="modo-desarrollo-fase-1"><a class="header" href="#modo-desarrollo-fase-1">Modo Desarrollo (Fase 1)</a></h3>
+<ul>
+<li><strong>Servidor:</strong> Flask desarrollo server (Werkzeug)</li>
+<li><strong>Puerto:</strong> 5001</li>
+<li><strong>Workers:</strong> 1 (single-threaded)</li>
+<li><strong>Características:</strong> Debug mode, auto-reload</li>
+</ul>
+<h3 id="modo-producción-fase-3"><a class="header" href="#modo-producción-fase-3">Modo Producción (Fase 3)</a></h3>
+<ul>
+<li><strong>Servidor:</strong> Gunicorn (WSGI server)</li>
+<li><strong>Puerto:</strong> 3000 (mapeado desde 8000 del contenedor)</li>
+<li><strong>Workers:</strong> 2 (multi-process)</li>
+<li><strong>Características:</strong> Optimizado para producción, sin debug mode</li>
+</ul>
+<h2 id="resultados-de-la-fase-3"><a class="header" href="#resultados-de-la-fase-3">Resultados de la Fase 3</a></h2>
+<p>✅ <strong>Servidor configurado correctamente:</strong> Docker Compose desplegado sin errores<br />
+✅ <strong>Gunicorn funcionando:</strong> El servidor WSGI está corriendo con 2 workers<br />
+✅ <strong>API accesible:</strong> La API responde correctamente en <code>http://localhost:3000</code><br />
+✅ <strong>Swagger UI funcionando:</strong> La documentación interactiva está accesible<br />
+✅ <strong>Endpoints verificados:</strong> Los endpoints principales funcionan correctamente<br />
+✅ <strong>Healthcheck pasando:</strong> El contenedor está marcado como healthy</p>
+<h2 id="evidencias-2"><a class="header" href="#evidencias-2">Evidencias</a></h2>
+<ul>
+<li>Captura de <code>docker compose ps</code> mostrando el contenedor corriendo</li>
+<li>Captura de los logs de Gunicorn mostrando workers iniciados</li>
+<li>Captura de Swagger UI funcionando en <code>http://localhost:3000/</code></li>
+<li>Captura de <code>POST /devices</code> ejecutado desde Swagger UI con respuesta exitosa</li>
+<li>Captura de <code>GET /devices</code> mostrando dispositivos conectados</li>
+<li>Captura de respuesta HTTP mostrando <code>server: gunicorn</code></li>
+</ul>
+<h2 id="comandos-Útiles"><a class="header" href="#comandos-Útiles">Comandos Útiles</a></h2>
+<pre><code class="language-bash"># Iniciar servicios
+docker compose up -d
+
+# Ver logs
+docker compose logs -f tictactoe-api
+
+# Ver estado
+docker compose ps
+
+# Detener servicios
+docker compose down
+
+# Reconstruir imagen
+docker compose build --no-cache
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="fase-4-configuración-avanzada"><a class="header" href="#fase-4-configuración-avanzada">Fase 4: Configuración Avanzada</a></h1>
+<h2 id="objetivo-3"><a class="header" href="#objetivo-3">Objetivo</a></h2>
+<p>Configurar el servidor para responder en un dominio local personalizado (<code>tictactoe.local:4000</code>) con múltiples instancias de la API que respondan al mismo dominio, garantizando que un mismo cliente sea atendido siempre por el mismo contenedor mediante sticky sessions.</p>
+<h2 id="arquitectura"><a class="header" href="#arquitectura">Arquitectura</a></h2>
+<p>La configuración avanzada utiliza:</p>
+<ul>
+<li><strong>3 instancias de la API:</strong> Para distribuir la carga</li>
+<li><strong>Nginx como proxy reverso:</strong> Para balancear las peticiones</li>
+<li><strong>Sticky sessions (ip_hash):</strong> Para garantizar consistencia cliente-contenedor</li>
+<li><strong>Dominio local personalizado:</strong> <code>tictactoe.local:4000</code></li>
+</ul>
+<pre><code>Cliente → Nginx (puerto 4000) → [API-1, API-2, API-3] (puerto 8000)
+         (balanceo con ip_hash)
+</code></pre>
+<h2 id="configuración"><a class="header" href="#configuración">Configuración</a></h2>
+<h3 id="1-configuración-del-dominio-local"><a class="header" href="#1-configuración-del-dominio-local">1. Configuración del Dominio Local</a></h3>
+<p>Añadimos el dominio local en <code>/etc/hosts</code>:</p>
+<pre><code class="language-bash">sudo nano /etc/hosts
+</code></pre>
+<p>Añadimos la línea:</p>
+<pre><code>127.0.0.1   tictactoe.local api.local
+</code></pre>
+<p><strong>Verificación:</strong></p>
+<pre><code class="language-bash">cat /etc/hosts | grep tictactoe
+</code></pre>
+<p><strong>Resultado:</strong> <code>127.0.0.1 tictactoe.local</code></p>
+<p><img src="images/Captura%20de%20pantalla%202025-11-14%20a%20las%2011.20.04.png" alt="Configuración del dominio local en /etc/hosts" /></p>
+<h3 id="2-docker-compose-avanzado"><a class="header" href="#2-docker-compose-avanzado">2. Docker Compose Avanzado</a></h3>
+<p>Creamos <code>docker-compose.advanced.yml</code> con 3 instancias de la API y Nginx:</p>
+<pre><code class="language-yaml">services:
+  tictactoe-api-1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tictactoe-api-1
+    expose:
+      - "8000"
+    environment:
+      - FLASK_ENV=production
+      - INSTANCE_ID=1
+    restart: unless-stopped
+    networks:
+      - tictactoe-network
+
+  tictactoe-api-2:
+    # ... configuración similar
+
+  tictactoe-api-3:
+    # ... configuración similar
+
+  nginx:
+    image: nginx:alpine
+    container_name: tictactoe-nginx
+    ports:
+      - "4000:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx-sticky.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - tictactoe-api-1
+      - tictactoe-api-2
+      - tictactoe-api-3
+    restart: unless-stopped
+    networks:
+      - tictactoe-network
+
+networks:
+  tictactoe-network:
+    driver: bridge
+</code></pre>
+<p><strong>Características importantes:</strong></p>
+<ul>
+<li>Las instancias de API solo exponen el puerto 8000 internamente (no al host)</li>
+<li>Nginx expone el puerto 4000 al host y actúa como proxy</li>
+<li>Todas las instancias están en la misma red Docker</li>
+</ul>
+<h3 id="3-configuración-de-nginx-con-sticky-sessions"><a class="header" href="#3-configuración-de-nginx-con-sticky-sessions">3. Configuración de Nginx con Sticky Sessions</a></h3>
+<h4 id="nginx-stickyconf"><a class="header" href="#nginx-stickyconf">nginx-sticky.conf</a></h4>
+<pre><code class="language-nginx">upstream tictactoe_backend {
+    # Sticky session basado en IP del cliente
+    ip_hash;
+    
+    server tictactoe-api-1:8000;
+    server tictactoe-api-2:8000;
+    server tictactoe-api-3:8000;
+}
+
+server {
+    listen 80;
+    server_name tictactoe.local api.local *.local;
+
+    access_log /var/log/nginx/tictactoe-access.log main;
+
+    location / {
+        proxy_pass http://tictactoe_backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        # ... más headers
+    }
+}
+</code></pre>
+<p><strong>Características:</strong></p>
+<ul>
+<li><strong>ip_hash:</strong> Garantiza que peticiones de la misma IP vayan siempre al mismo backend</li>
+<li><strong>Logs con upstream:</strong> Los logs incluyen información del backend que atendió la petición</li>
+</ul>
+<h2 id="proceso-de-despliegue-1"><a class="header" href="#proceso-de-despliegue-1">Proceso de Despliegue</a></h2>
+<h3 id="1-reconstrucción-de-imágenes"><a class="header" href="#1-reconstrucción-de-imágenes">1. Reconstrucción de Imágenes</a></h3>
+<p>Para asegurar que todas las instancias usan Gunicorn, reconstruimos sin caché:</p>
+<pre><code class="language-bash">docker compose -f docker-compose.advanced.yml build --no-cache
+</code></pre>
+<p><strong>Resultado:</strong> Las 3 imágenes se construyeron correctamente.</p>
+<h3 id="2-inicio-de-servicios"><a class="header" href="#2-inicio-de-servicios">2. Inicio de Servicios</a></h3>
+<pre><code class="language-bash">docker compose -f docker-compose.advanced.yml up -d
+</code></pre>
+<p><strong>Resultado:</strong></p>
+<pre><code>[+] Running 5/5
+ ✔ Network tictactoe-back_tictactoe-network  Created    0.0s
+ ✔ Container tictactoe-api-1                 Started    0.3s
+ ✔ Container tictactoe-api-2                 Started    0.3s
+ ✔ Container tictactoe-api-3                 Started    0.3s
+ ✔ Container tictactoe-nginx                 Started    0.3s
+</code></pre>
+<p><img src="images/Captura%20de%20pantalla%202025-11-14%20a%20las%2011.20.04.png" alt="Reconstrucción de imágenes sin caché" /></p>
+<h3 id="3-verificación-del-estado-1"><a class="header" href="#3-verificación-del-estado-1">3. Verificación del Estado</a></h3>
+<pre><code class="language-bash">docker compose -f docker-compose.advanced.yml ps
+</code></pre>
+<p><strong>Resultado:</strong></p>
+<pre><code>NAME              IMAGE                            COMMAND                  STATUS          PORTS
+tictactoe-api-1   tictactoe-back-tictactoe-api-1   "uv run gunicorn --b…"   Up             8000/tcp
+tictactoe-api-2   tictactoe-back-tictactoe-api-2   "uv run gunicorn --b…"   Up             8000/tcp
+tictactoe-api-3   tictactoe-back-tictactoe-api-3   "uv run gunicorn --b…"   Up             8000/tcp
+tictactoe-nginx   nginx:alpine                     "/docker-entrypoint.…"   Up             0.0.0.0:4000-&gt;80/tcp
+</code></pre>
+<p><strong>Observaciones importantes:</strong></p>
+<ul>
+<li>✅ Las 3 instancias de API están corriendo</li>
+<li>✅ Todas usan Gunicorn (<code>"uv run gunicorn --b…"</code>)</li>
+<li>✅ Nginx está corriendo y expone el puerto 4000</li>
+</ul>
+<p><img src="images/Captura%20de%20pantalla%202025-11-14%20a%20las%2011.20.34.png" alt="4 contenedores corriendo (3 API + 1 Nginx)" /></p>
+<h3 id="4-verificación-de-logs-1"><a class="header" href="#4-verificación-de-logs-1">4. Verificación de Logs</a></h3>
+<p>Verificamos que todas las instancias iniciaron Gunicorn correctamente:</p>
+<pre><code class="language-bash">docker compose -f docker-compose.advanced.yml logs tictactoe-api-1 | grep -i gunicorn
+docker compose -f docker-compose.advanced.yml logs tictactoe-api-2 | grep -i gunicorn
+docker compose -f docker-compose.advanced.yml logs tictactoe-api-3 | grep -i gunicorn
+</code></pre>
+<p><strong>Resultado:</strong></p>
+<pre><code>tictactoe-api-1  | [2025-11-14 11:18:42 +0000] [10] [INFO] Starting gunicorn 23.0.0
+tictactoe-api-2  | [2025-11-14 11:18:42 +0000] [9] [INFO] Starting gunicorn 23.0.0
+tictactoe-api-3  | [2025-11-14 11:18:42 +0000] [10] [INFO] Starting gunicorn 23.0.0
+</code></pre>
+<p>Todas las instancias están usando Gunicorn correctamente.</p>
+<p><img src="images/Captura%20de%20pantalla%202025-11-14%20a%20las%2011.20.34.png" alt="Logs mostrando Gunicorn en las 3 instancias" /></p>
+<h2 id="verificación-de-funcionamiento-1"><a class="header" href="#verificación-de-funcionamiento-1">Verificación de Funcionamiento</a></h2>
+<h3 id="1-acceso-a-swagger-ui-1"><a class="header" href="#1-acceso-a-swagger-ui-1">1. Acceso a Swagger UI</a></h3>
+<p>Abrimos el navegador en <code>http://tictactoe.local:4000/</code> y verificamos que Swagger UI carga correctamente.</p>
+<p><strong>Características observadas:</strong></p>
+<ul>
+<li>URL en el navegador: <code>tictactoe.local:4000</code></li>
+<li>Swagger UI carga completamente</li>
+<li>Todos los endpoints están documentados</li>
+</ul>
+<p><img src="images/Captura%20de%20pantalla%202025-11-14%20a%20las%2011.23.38.png" alt="Swagger UI funcionando en tictactoe.local:4000" /></p>
+<h3 id="2-prueba-de-endpoints-1"><a class="header" href="#2-prueba-de-endpoints-1">2. Prueba de Endpoints</a></h3>
+<h4 id="21-registro-de-dispositivo-1"><a class="header" href="#21-registro-de-dispositivo-1">2.1. Registro de Dispositivo</a></h4>
+<p>Ejecutamos <code>POST /devices</code> desde Swagger UI:</p>
+<ul>
+<li><strong>Request:</strong></li>
+</ul>
+<pre><code class="language-json">{
+  "alias": "dispositivo3"
+}
+</code></pre>
+<ul>
+<li><strong>Respuesta:</strong></li>
+</ul>
+<pre><code class="language-json">{
+  "device_id": "9c8ffc83-2f0d-4333-ad98-a27e51fedf76"
+}
+</code></pre>
+<ul>
+<li><strong>Código:</strong> <code>201 Created</code></li>
+<li><strong>Server:</strong> <code>nginx/1.29.3</code> (confirmando que Nginx está actuando como proxy)</li>
+</ul>
+<p><img src="images/Captura%20de%20pantalla%202025-11-14%20a%20las%2011.23.50.png" alt="POST /devices ejecutado mostrando server: nginx/1.29.3" /></p>
+<h4 id="22-listado-de-dispositivos-1"><a class="header" href="#22-listado-de-dispositivos-1">2.2. Listado de Dispositivos</a></h4>
+<p>Ejecutamos <code>GET /devices</code>:</p>
+<ul>
+<li><strong>Respuesta:</strong></li>
+</ul>
+<pre><code class="language-json">{
+  "connected_devices": [
+    "9c8ffc83-2f0d-4333-ad98-a27e51fedf76"
+  ]
+}
+</code></pre>
+<ul>
+<li><strong>Código:</strong> <code>200 OK</code></li>
+<li><strong>Server:</strong> <code>nginx/1.29.3</code></li>
+</ul>
+<p><img src="images/Captura%20de%20pantalla%202025-11-14%20a%20las%2011.23.50.png" alt="GET /devices ejecutado mostrando server: nginx/1.29.3" /></p>
+<h3 id="3-verificación-de-sticky-sessions"><a class="header" href="#3-verificación-de-sticky-sessions">3. Verificación de Sticky Sessions</a></h3>
+<p>Para verificar que sticky sessions funciona correctamente, realizamos múltiples peticiones y verificamos los logs de Nginx:</p>
+<pre><code class="language-bash"># Realizamos 5 peticiones
+curl http://tictactoe.local:4000/devices
+curl http://tictactoe.local:4000/devices
+curl http://tictactoe.local:4000/devices
+curl http://tictactoe.local:4000/devices
+curl http://tictactoe.local:4000/devices
+</code></pre>
+<p>Luego verificamos los logs de Nginx:</p>
+<pre><code class="language-bash">docker compose -f docker-compose.advanced.yml exec nginx cat /var/log/nginx/tictactoe-access.log | grep "upstream:"
+</code></pre>
+<p><strong>Resultado:</strong></p>
+<pre><code>151.101.0.223 - - [14/Nov/2025:11:25:38 +0000] "GET /devices HTTP/1.1" 200 144 "-" "curl/8.7.1" "-" upstream: 172.25.0.3:8000
+151.101.0.223 - - [14/Nov/2025:11:25:44 +0000] "GET /devices HTTP/1.1" 200 64 "-" "curl/8.7.1" "-" upstream: 172.25.0.3:8000
+151.101.0.223 - - [14/Nov/2025:11:25:51 +0000] "GET /devices HTTP/1.1" 200 64 "-" "curl/8.7.1" "-" upstream: 172.25.0.3:8000
+151.101.0.223 - - [14/Nov/2025:11:25:59 +0000] "GET /devices HTTP/1.1" 200 64 "-" "curl/8.7.1" "-" upstream: 172.25.0.3:8000
+151.101.0.223 - - [14/Nov/2025:11:26:05 +0000] "GET /devices HTTP/1.1" 200 144 "-" "curl/8.7.1" "-" upstream: 172.25.0.3:8000
+</code></pre>
+<p><strong>Análisis crítico:</strong></p>
+<ul>
+<li>✅ Todas las peticiones van al mismo upstream: <code>172.25.0.3:8000</code></li>
+<li>✅ El cliente (IP <code>151.101.0.223</code>) siempre es enrutado al mismo backend</li>
+<li>✅ Esto confirma que sticky sessions funciona correctamente</li>
+</ul>
+<p><strong>Nota:</strong> Aunque las respuestas pueden variar (diferentes dispositivos en cada instancia debido al estado en memoria), el hecho de que todas las peticiones vayan al mismo upstream garantiza consistencia para el mismo cliente.</p>
+<p><img src="images/Captura%20de%20pantalla%202025-11-14%20a%20las%2011.27.18.png" alt="Logs de Nginx mostrando sticky sessions (mismo upstream)" /></p>
+<h2 id="funcionamiento-de-sticky-sessions"><a class="header" href="#funcionamiento-de-sticky-sessions">Funcionamiento de Sticky Sessions</a></h2>
+<h3 id="cómo-funciona-ip_hash"><a class="header" href="#cómo-funciona-ip_hash">¿Cómo funciona ip_hash?</a></h3>
+<ol>
+<li>Nginx calcula un hash basado en la IP del cliente</li>
+<li>Este hash determina qué backend atenderá la petición</li>
+<li>Todas las peticiones de la misma IP van siempre al mismo backend</li>
+<li>Esto garantiza consistencia para aplicaciones con estado en memoria</li>
+</ol>
+<h3 id="ventajas"><a class="header" href="#ventajas">Ventajas</a></h3>
+<ul>
+<li><strong>Consistencia:</strong> El mismo cliente siempre ve el mismo estado</li>
+<li><strong>Simplicidad:</strong> No requiere cookies ni sesiones explícitas</li>
+<li><strong>Rendimiento:</strong> Balanceo de carga eficiente</li>
+</ul>
+<h3 id="limitaciones"><a class="header" href="#limitaciones">Limitaciones</a></h3>
+<ul>
+<li>Solo funciona con IPs únicas (múltiples usuarios detrás de NAT compartirían el mismo backend)</li>
+<li>Si un backend cae, las peticiones de ese hash se redistribuyen (puede causar pérdida de estado)</li>
+</ul>
+<h2 id="comparación-fase-3-vs-fase-4"><a class="header" href="#comparación-fase-3-vs-fase-4">Comparación: Fase 3 vs Fase 4</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>Característica</th><th>Fase 3</th><th>Fase 4</th></tr></thead><tbody>
+<tr><td>Instancias</td><td>1</td><td>3</td></tr>
+<tr><td>Balanceador</td><td>No</td><td>Sí (Nginx)</td></tr>
+<tr><td>Dominio</td><td>localhost:3000</td><td>tictactoe.local:4000</td></tr>
+<tr><td>Sticky Sessions</td><td>No aplica</td><td>Sí (ip_hash)</td></tr>
+<tr><td>Escalabilidad</td><td>Limitada</td><td>Alta</td></tr>
+<tr><td>Alta Disponibilidad</td><td>No</td><td>Parcial (3 instancias)</td></tr>
+</tbody></table>
+</div>
+<h2 id="resultados-de-la-fase-4"><a class="header" href="#resultados-de-la-fase-4">Resultados de la Fase 4</a></h2>
+<p>✅ <strong>Dominio local configurado:</strong> <code>tictactoe.local:4000</code> funciona correctamente<br />
+✅ <strong>Múltiples instancias desplegadas:</strong> 3 instancias de la API corriendo<br />
+✅ <strong>Nginx funcionando:</strong> Proxy reverso operativo y balanceando carga<br />
+✅ <strong>Gunicorn en todas las instancias:</strong> Todas usan el servidor WSGI de producción<br />
+✅ <strong>Sticky sessions verificadas:</strong> Todas las peticiones del mismo cliente van al mismo backend<br />
+✅ <strong>API accesible:</strong> Swagger UI funciona correctamente con el dominio personalizado</p>
+<h2 id="evidencias-3"><a class="header" href="#evidencias-3">Evidencias</a></h2>
+<ul>
+<li>Captura de configuración en <code>/etc/hosts</code></li>
+<li>Captura de <code>docker compose ps</code> mostrando 4 contenedores corriendo</li>
+<li>Captura de logs de Gunicorn en las 3 instancias</li>
+<li>Captura de Swagger UI funcionando en <code>http://tictactoe.local:4000/</code></li>
+<li>Captura de <code>POST /devices</code> ejecutado desde Swagger UI mostrando <code>server: nginx/1.29.3</code></li>
+<li>Captura de <code>GET /devices</code> ejecutado desde Swagger UI</li>
+<li>Captura de logs de Nginx mostrando que todas las peticiones van al mismo upstream (<code>172.25.0.3:8000</code>)</li>
+</ul>
+<h2 id="comandos-Útiles-1"><a class="header" href="#comandos-Útiles-1">Comandos Útiles</a></h2>
+<pre><code class="language-bash"># Iniciar servicios
+docker compose -f docker-compose.advanced.yml up -d
+
+# Ver estado de todos los contenedores
+docker compose -f docker-compose.advanced.yml ps
+
+# Ver logs de Nginx
+docker compose -f docker-compose.advanced.yml logs nginx
+
+# Ver logs de una instancia específica
+docker compose -f docker-compose.advanced.yml logs tictactoe-api-1
+
+# Verificar sticky sessions
+docker compose -f docker-compose.advanced.yml exec nginx cat /var/log/nginx/tictactoe-access.log | grep "upstream:"
+
+# Detener servicios
+docker compose -f docker-compose.advanced.yml down
+
+# Reconstruir sin caché
+docker compose -f docker-compose.advanced.yml build --no-cache
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="reflexión-final"><a class="header" href="#reflexión-final">Reflexión Final</a></h1>
+<h2 id="resumen-del-proyecto"><a class="header" href="#resumen-del-proyecto">Resumen del Proyecto</a></h2>
+<p>Este proyecto ha consistido en el despliegue y configuración integral de un servidor de aplicaciones para la API TicTacToe, abarcando desde la preparación del entorno local hasta una configuración avanzada con múltiples instancias y balanceador de carga.</p>
+<h2 id="proceso-realizado"><a class="header" href="#proceso-realizado">Proceso Realizado</a></h2>
+<h3 id="fase-1-preparación-del-entorno"><a class="header" href="#fase-1-preparación-del-entorno">Fase 1: Preparación del Entorno</a></h3>
+<ul>
+<li>Configuración del entorno de desarrollo local</li>
+<li>Verificación de tests y funcionamiento básico</li>
+<li>Identificación y resolución del conflicto con AirPlay en macOS (puerto 5000)</li>
+</ul>
+<h3 id="fase-2-contenedorización"><a class="header" href="#fase-2-contenedorización">Fase 2: Contenedorización</a></h3>
+<ul>
+<li>Implementación de Docker con Gunicorn como servidor WSGI</li>
+<li>Justificación técnica de las decisiones tomadas</li>
+<li>Construcción exitosa de imágenes Docker</li>
+</ul>
+<h3 id="fase-3-configuración-básica"><a class="header" href="#fase-3-configuración-básica">Fase 3: Configuración Básica</a></h3>
+<ul>
+<li>Despliegue con Docker Compose</li>
+<li>Verificación del funcionamiento en producción</li>
+<li>Comparación entre modo desarrollo y producción</li>
+</ul>
+<h3 id="fase-4-configuración-avanzada-1"><a class="header" href="#fase-4-configuración-avanzada-1">Fase 4: Configuración Avanzada</a></h3>
+<ul>
+<li>Implementación de múltiples instancias</li>
+<li>Configuración de Nginx como proxy reverso</li>
+<li>Verificación de sticky sessions con ip_hash</li>
+</ul>
+<h2 id="logros-alcanzados"><a class="header" href="#logros-alcanzados">Logros Alcanzados</a></h2>
+<p>✅ <strong>Aplicación completamente funcional</strong> en todos los entornos<br />
+✅ <strong>Contenedorización exitosa</strong> con Docker y Gunicorn<br />
+✅ <strong>Despliegue escalable</strong> con múltiples instancias<br />
+✅ <strong>Balanceo de carga</strong> con sticky sessions funcionando<br />
+✅ <strong>Documentación completa</strong> de todo el proceso</p>
+<h2 id="dificultades-encontradas-y-soluciones"><a class="header" href="#dificultades-encontradas-y-soluciones">Dificultades Encontradas y Soluciones</a></h2>
+<h3 id="1-conflicto-de-puerto-en-macos"><a class="header" href="#1-conflicto-de-puerto-en-macos">1. Conflicto de Puerto en macOS</a></h3>
+<p><strong>Problema:</strong> El puerto 5000 está ocupado por AirPlay en macOS.</p>
+<p><strong>Solución:</strong> Modificación de la aplicación para usar el puerto 5001 en desarrollo.</p>
+<p><strong>Aprendizaje:</strong> Es importante verificar puertos disponibles antes de desplegar.</p>
+<h3 id="2-inconsistencia-entre-instancias"><a class="header" href="#2-inconsistencia-entre-instancias">2. Inconsistencia entre Instancias</a></h3>
+<p><strong>Problema:</strong> Algunas instancias en la Fase 4 estaban usando Flask en desarrollo en lugar de Gunicorn.</p>
+<p><strong>Solución:</strong> Reconstrucción de imágenes sin caché (<code>--no-cache</code>) para asegurar que todas las instancias usan la configuración correcta.</p>
+<p><strong>Aprendizaje:</strong> Es crucial verificar que todas las instancias en un despliegue distribuido usan la misma configuración.</p>
+<h3 id="3-logs-de-nginx-sin-información-de-upstream"><a class="header" href="#3-logs-de-nginx-sin-información-de-upstream">3. Logs de Nginx sin Información de Upstream</a></h3>
+<p><strong>Problema:</strong> Inicialmente los logs de Nginx no mostraban información del upstream.</p>
+<p><strong>Solución:</strong> Configuración del formato de log en <code>nginx.conf</code> para incluir <code>upstream_addr</code> y especificación del formato en <code>nginx-sticky.conf</code>.</p>
+<p><strong>Aprendizaje:</strong> La configuración de logs requiere atención específica para obtener información de diagnóstico útil.</p>
+<h2 id="decisiones-técnicas-justificadas"><a class="header" href="#decisiones-técnicas-justificadas">Decisiones Técnicas Justificadas</a></h2>
+<h3 id="gunicorn-vs-flask-development-server"><a class="header" href="#gunicorn-vs-flask-development-server">Gunicorn vs Flask Development Server</a></h3>
+<p><strong>Decisión:</strong> Usar Gunicorn en producción.</p>
+<p><strong>Justificación:</strong></p>
+<ul>
+<li>Gunicorn está diseñado específicamente para producción</li>
+<li>Soporta múltiples workers para mejor rendimiento</li>
+<li>Más estable y eficiente que el servidor de desarrollo de Flask</li>
+</ul>
+<h3 id="docker-para-contenedorización"><a class="header" href="#docker-para-contenedorización">Docker para Contenedorización</a></h3>
+<p><strong>Decisión:</strong> Usar Docker para el despliegue.</p>
+<p><strong>Justificación:</strong></p>
+<ul>
+<li>Reproducibilidad entre entornos</li>
+<li>Aislamiento de dependencias</li>
+<li>Facilita el despliegue de múltiples instancias</li>
+</ul>
+<h3 id="nginx-como-proxy-reverso"><a class="header" href="#nginx-como-proxy-reverso">Nginx como Proxy Reverso</a></h3>
+<p><strong>Decisión:</strong> Usar Nginx en lugar de otro balanceador.</p>
+<p><strong>Justificación:</strong></p>
+<ul>
+<li>Alto rendimiento</li>
+<li>Implementación sencilla de sticky sessions con ip_hash</li>
+<li>Ampliamente usado y documentado</li>
+</ul>
+<h3 id="sticky-sessions-con-ip_hash"><a class="header" href="#sticky-sessions-con-ip_hash">Sticky Sessions con ip_hash</a></h3>
+<p><strong>Decisión:</strong> Usar ip_hash para sticky sessions.</p>
+<p><strong>Justificación:</strong></p>
+<ul>
+<li>Simple de implementar</li>
+<li>No requiere cookies ni sesiones explícitas</li>
+<li>Eficiente para aplicaciones con estado en memoria</li>
+</ul>
+<p><strong>Limitaciones reconocidas:</strong></p>
+<ul>
+<li>No funciona bien con múltiples usuarios detrás de NAT</li>
+<li>Redistribución de carga si un backend cae puede causar pérdida de estado</li>
+</ul>
+<h2 id="mejoras-futuras"><a class="header" href="#mejoras-futuras">Mejoras Futuras</a></h2>
+<h3 id="corto-plazo"><a class="header" href="#corto-plazo">Corto Plazo</a></h3>
+<ol>
+<li>
+<p><strong>Persistencia de Datos:</strong></p>
+<ul>
+<li>Implementar base de datos (PostgreSQL o Redis) para compartir estado entre instancias</li>
+<li>Eliminar dependencia de estado en memoria</li>
+</ul>
+</li>
+<li>
+<p><strong>Health Checks Mejorados:</strong></p>
+<ul>
+<li>Implementar endpoints de health check en la API</li>
+<li>Configurar Nginx para eliminar backends no saludables automáticamente</li>
+</ul>
+</li>
+<li>
+<p><strong>Monitoreo:</strong></p>
+<ul>
+<li>Integrar herramientas de monitoreo (Prometheus, Grafana)</li>
+<li>Implementar logging centralizado</li>
+</ul>
+</li>
+</ol>
+<h3 id="medio-plazo"><a class="header" href="#medio-plazo">Medio Plazo</a></h3>
+<ol>
+<li>
+<p><strong>Alta Disponibilidad:</strong></p>
+<ul>
+<li>Desplegar múltiples instancias de Nginx con load balancer</li>
+<li>Implementar failover automático</li>
+</ul>
+</li>
+<li>
+<p><strong>Seguridad:</strong></p>
+<ul>
+<li>Implementar HTTPS con certificados SSL/TLS</li>
+<li>Añadir autenticación y autorización</li>
+<li>Implementar rate limiting</li>
+</ul>
+</li>
+<li>
+<p><strong>CI/CD:</strong></p>
+<ul>
+<li>Automatizar construcción y despliegue con CI/CD</li>
+<li>Implementar tests automatizados antes del despliegue</li>
+</ul>
+</li>
+</ol>
+<h3 id="largo-plazo"><a class="header" href="#largo-plazo">Largo Plazo</a></h3>
+<ol>
+<li>
+<p><strong>Orquestación Avanzada:</strong></p>
+<ul>
+<li>Migrar a Kubernetes para mejor escalabilidad</li>
+<li>Implementar auto-scaling basado en carga</li>
+</ul>
+</li>
+<li>
+<p><strong>Arquitectura Distribuida:</strong></p>
+<ul>
+<li>Implementar cola de mensajes para operaciones asíncronas</li>
+<li>Separar servicios en microservicios independientes</li>
+</ul>
+</li>
+<li>
+<p><strong>Observabilidad:</strong></p>
+<ul>
+<li>Implementar distributed tracing</li>
+<li>Añadir métricas de negocio</li>
+</ul>
+</li>
+</ol>
+<h2 id="conclusiones"><a class="header" href="#conclusiones">Conclusiones</a></h2>
+<p>Este proyecto ha sido una excelente oportunidad para:</p>
+<ol>
+<li>
+<p><strong>Aprender sobre despliegue de aplicaciones:</strong> Desde desarrollo local hasta producción con múltiples instancias.</p>
+</li>
+<li>
+<p><strong>Entender contenedorización:</strong> Docker y Docker Compose como herramientas fundamentales para despliegue moderno.</p>
+</li>
+<li>
+<p><strong>Aprender sobre balanceo de carga:</strong> Nginx y sticky sessions como mecanismos para distribuir carga manteniendo consistencia.</p>
+</li>
+<li>
+<p><strong>Documentar procesos técnicos:</strong> La importancia de documentar cada paso para reproducibilidad y mantenimiento.</p>
+</li>
+<li>
+<p><strong>Resolución de problemas:</strong> Identificar y resolver problemas técnicos de forma sistemática.</p>
+</li>
+</ol>
+<h2 id="lecciones-aprendidas"><a class="header" href="#lecciones-aprendidas">Lecciones Aprendidas</a></h2>
+<ol>
+<li>
+<p><strong>Verificar siempre el entorno:</strong> Conflictos como el puerto 5000 en macOS pueden evitarse con verificación previa.</p>
+</li>
+<li>
+<p><strong>Consistencia en despliegue:</strong> Todas las instancias deben usar la misma configuración.</p>
+</li>
+<li>
+<p><strong>Importancia de los logs:</strong> Los logs bien configurados son esenciales para debugging y diagnóstico.</p>
+</li>
+<li>
+<p><strong>Pruebas en cada fase:</strong> Verificar que cada fase funciona antes de pasar a la siguiente.</p>
+</li>
+<li>
+<p><strong>Documentación como parte del proceso:</strong> Documentar mientras se hace, no después.</p>
+</li>
+</ol>
+<h2 id="valor-del-proyecto"><a class="header" href="#valor-del-proyecto">Valor del Proyecto</a></h2>
+<p>Este proyecto demuestra:</p>
+<ul>
+<li><strong>Comprensión técnica</strong> de servidores de aplicaciones y despliegue</li>
+<li><strong>Capacidad de resolución de problemas</strong> ante dificultades técnicas</li>
+<li><strong>Habilidades de documentación</strong> para procesos complejos</li>
+<li><strong>Atención al detalle</strong> en configuración y verificación</li>
+<li><strong>Pensamiento arquitectónico</strong> para diseño escalable</li>
+</ul>
+<h2 id="reflexión-personal"><a class="header" href="#reflexión-personal">Reflexión Personal</a></h2>
+<p>Este proyecto ha sido muy educativo, permitiéndome profundizar en aspectos de despliegue que normalmente no se cubren en desarrollo. La transición de una aplicación funcionando en local a una configuración de producción con múltiples instancias y balanceador de carga ha sido desafiante pero muy enriquecedora.</p>
+<p>El uso de sticky sessions y la verificación de que funcionan correctamente fue especialmente interesante, ya que demuestra cómo pequeños detalles en la configuración pueden tener grandes implicaciones en el comportamiento del sistema.</p>
+<p>En general, estoy satisfecho con los resultados alcanzados y considero que las cuatro fases del proyecto se completaron exitosamente.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+        <script src="ace.js"></script>
+        <script src="mode-rust.js"></script>
+        <script src="editor.js"></script>
+        <script src="theme-dawn.js"></script>
+        <script src="theme-tomorrow_night.js"></script>
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+        <script>
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+
+
+    </div>
+    </body>
+</html>
